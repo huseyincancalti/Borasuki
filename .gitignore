@@ -1,0 +1,76 @@
+# Borasuki local build and runtime files
+# ==========================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+
+# --- Distribution / Build ---
+build/
+dist/
+*.egg-info/
+*.egg
+*.whl
+
+# --- PyInstaller ---
+*.manifest
+
+# --- Virtual Environment ---
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# --- OS ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+*.lnk
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Borasuki Runtime Data ---
+workspace/
+/engines/
+/runtime/
+/data/
+config.json
+jobs.json
+
+# --- Test ---
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# --- Misc ---
+*.bak
+*.tmp
+*.temp
+*.orig
+
+# Local tooling and secrets
+.claude/
+.env
+.env.*
+!.env.example
+
+# Local codebase graph generated during architecture research
+/graphify-out/

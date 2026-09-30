@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; media-src 'self' data: blob: http://127.0.0.1:*; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:*">
+  <title>Borasuki</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><img src="assets/img/logo(with_no_background).png" alt="Borasuki" width="40" height="40"><strong>Borasuki</strong></div>
+    <nav aria-label="Borasuki">
+      <button data-page="add" class="selected" data-i18n="nav.add"></button>
+      <button data-page="preview" data-i18n="nav.preview"></button>
+      <button data-page="queue" data-i18n="nav.queue"></button>
+      <button data-page="history" data-i18n="nav.history"></button>
+      <button data-page="settings" data-i18n="nav.settings"></button>
+    </nav>
+  </aside>
+  <main id="main">
+    <div id="error" hidden><p id="errorMessage" role="alert"></p><details id="errorDetails" hidden><summary data-i18n="ui.error_details"></summary><pre id="errorTechnical" class="technicalDetails"></pre></details><div id="errorRecovery" class="actions"></div><div class="actions"><button id="errorLogs" data-i18n="ui.logs"></button><button id="errorDismiss" data-i18n="ui.close"></button></div></div>
+    <p id="announcement" class="sr-only" role="status" aria-live="polite"></p>
+    <div id="setupGate" class="notice" hidden><p data-i18n="ui.setup_gate"></p><button id="setupOpen" data-i18n="ui.setup_open"></button></div>
+    <div id="importStatus" class="notice" role="status" aria-live="polite" hidden><span id="importLabel" data-i18n="ui.importing"></span><progress id="importProgress" aria-labelledby="importLabel"></progress></div>
+    <section id="page-add" class="page">
+      <header><h1 id="addTitle" data-i18n="nav.add"></h1></header>
+      <div id="editNotice" class="notice" hidden><span data-i18n="ui.edit_notice"></span><button id="discardEdit" class="quiet" data-i18n="ui.discard_edit"></button></div>
+      <fieldset id="jobForm">
+        <div class="jobWorkspace">
+        <div class="sourceColumn">
+        <section class="sourcePanel" aria-labelledby="sourceTitle">
+        <h2 id="sourceTitle" data-i18n="ui.source_video"></h2>
+        <div id="drop"><span class="uploadGlyph" aria-hidden="true">↑</span><strong data-i18n="ui.drop"></strong><small data-i18n="ui.formats"></small><button id="browse" data-i18n="ui.browse"></button><button id="batchFolder" class="quiet" data-i18n="ui.batch_folder"></button></div>
+        <p id="source" class="path" data-i18n="ui.no_file"></p><p id="mediaInfo" class="muted"></p>
+        <p id="colorWarning" class="warning" data-i18n="ui.assumed_color" hidden></p>
+        <section id="batchPanel" class="sourceSelection" aria-labelledby="batchTitle" hidden>
+          <h3 id="batchTitle" data-i18n="ui.batch_title"></h3><p class="muted" data-i18n="ui.batch_scope"></p>
+          <div id="batchSelection" hidden><label><span data-i18n="ui.batch_selected"></span><select id="batchSelect"></select></label>
+            <div class="actions"><button id="batchOpen" data-i18n="ui.batch_open"></button><button id="batchRemove" data-i18n="ui.remove"></button></div>
+            <p data-help-for="batchTitle" data-i18n="ui.batch_direct_hint"></p><button id="batchQueue" data-i18n="ui.batch_queue"></button>
+          </div>
+        </section>
+        </section>
+        <section class="outputPanel" aria-labelledby="outputTitle">
+        <h2 id="outputTitle" data-i18n="ui.output"></h2>
+        <label for="folder" data-i18n="ui.folder"></label><div class="folder"><input id="folder" type="text" spellcheck="false"><button id="folderPick" data-i18n="ui.folder_pick"></button></div>
+        <label><span data-i18n="ui.filename"></span><input id="filename" type="text" spellcheck="false"></label>
+        <label><span data-i18n="ui.output_format"></span><select id="outputFormat"><option value="mkv">MKV</option><option value="mp4">MP4</option></select></label>
+        <p id="outputTrackWarning" class="warning" data-i18n="ui.mp4_tracks_warning" hidden></p>
+        <label><span data-i18n="ui.gpu"></span><select id="gpu"></select></label>
+        <p class="muted" data-help-for="outputTitle" data-i18n="ui.reference_note"></p>
+        </section>
+        </div>
+        <div class="processingColumn">
+        <details id="presetPanel" class="inset"><summary data-i18n="ui.presets"></summary>
+          <p class="muted" data-i18n="ui.preset_scope"></p>
+          <label><span data-i18n="ui.presets"></span><select id="presetSelect"><option value="" data-i18n="ui.preset_choose"></option></select></label>
+          <div class="actions"><button id="presetApply" data-i18n="ui.preset_apply" disabled></button><button id="presetDelete" class="danger" data-i18n="ui.preset_delete" disabled></button></div>
+          <label><span data-i18n="ui.preset_name"></span><input id="presetName" type="text" maxlength="80"></label>
+          <button id="presetSave" data-i18n="ui.preset_save"></button><p id="presetStatus" role="status"></p>
+        </details>
+        <section class="processingGroup" aria-labelledby="upscaleTitle">
+          <h2 id="upscaleTitle" data-i18n="ui.upscale"></h2>
+          <label><span data-i18n="ui.scale"></span><select id="upscaleScale"><option value="2">2×</option></select></label>
+        </section>
+        <section class="processingGroup" aria-labelledby="denoiseTitle">
+          <h2 id="denoiseTitle" data-i18n="ui.denoise"></h2>
+          <label class="check"><input id="denoiseEnabled" type="checkbox" checked><span data-i18n="ui.denoise_enabled"></span></label>
+          <label><span data-i18n="ui.denoise_strength"></span><input id="denoiseStrength" type="range" min="1" max="3" step="1" value="1"><output id="denoiseValue">1</output></label>
+          <p class="muted" data-help-for="denoiseTitle" data-i18n="ui.denoise_hint"></p>
+        </section>
+        <section class="processingGroup" aria-labelledby="colorTitle">
+        <h2 id="colorTitle" data-i18n="ui.color"></h2>
+        <select id="colorMode" hidden>
+          <option value="reference" data-i18n="color.reference"></option><option value="adaptive" data-i18n="color.adaptive"></option>
+          <option value="original" data-i18n="color.original"></option><option value="custom" data-i18n="color.custom"></option>
+        </select>
+        <div class="colorCards" role="radiogroup" aria-labelledby="colorTitle">
+          <label><input type="radio" name="color" data-color="reference" aria-labelledby="colorReference" checked><span><strong id="colorReference" data-i18n="color.reference"></strong></span></label>
+          <label><input type="radio" name="color" data-color="adaptive" aria-labelledby="colorAdaptive"><span><strong id="colorAdaptive" data-i18n="color.adaptive"></strong></span></label>
+          <label><input type="radio" name="color" data-color="original" aria-labelledby="colorOriginal"><span><strong id="colorOriginal" data-i18n="color.original"></strong></span></label>
+          <label><input type="radio" name="color" data-color="custom" aria-labelledby="colorCustom"><span><strong id="colorCustom" data-i18n="color.custom"></strong></span></label>
+        </div>
+        <p data-help-for="colorTitle" data-i18n="ui.color_help"></p>
+        <div id="adaptiveProfileRow" hidden><label><span id="adaptiveProfileTitle" data-i18n="ui.adaptive_profile"></span><select id="adaptiveProfile"><option value="normal" data-i18n="adaptive.normal"></option><option value="dark" data-i18n="adaptive.dark"></option><option value="high_saturation" data-i18n="adaptive.high_saturation"></option></select></label><p id="adaptiveProfileHint" data-help-for="adaptiveProfileTitle" class="muted"></p><p class="muted" data-help-for="adaptiveProfileTitle" data-i18n="ui.adaptive_profile_change"></p></div>
+        <details id="colorAdjustments" hidden><summary data-i18n="ui.manual_color"></summary>
+        <div id="custom" class="grid three inset" hidden>
+          <div><label><span data-i18n="ui.contrast"></span><input id="contrast" type="range" min="-20" max="20" step="any" value="0"><output id="contrastValue">0</output></label><label id="contrastOverrideRow" class="check" hidden><input id="contrastOverride" type="checkbox"><span data-i18n="ui.override_contrast"></span></label></div>
+          <div><label><span data-i18n="ui.brightness"></span><input id="brightness" type="range" min="-5" max="5" step="any" value="0"><output id="brightnessValue">0</output></label><label id="brightnessOverrideRow" class="check" hidden><input id="brightnessOverride" type="checkbox"><span data-i18n="ui.override_brightness"></span></label></div>
+          <div><label><span data-i18n="ui.saturation"></span><input id="saturation" type="range" min="-20" max="20" step="any" value="0"><output id="saturationValue">0</output></label><label id="saturationOverrideRow" class="check" hidden><input id="saturationOverride" type="checkbox"><span data-i18n="ui.override_saturation"></span></label></div>
+        </div>
+        </details>
+        <div id="adaptiveNote" class="statusPanel" hidden><p id="analysisStatus" role="status"></p><progress id="analysisProgress" aria-labelledby="analysisStatus" hidden></progress><details id="analysisDetails" hidden><summary data-i18n="ui.error_details"></summary><pre id="analysisTechnical" class="technicalDetails"></pre></details><div class="actions"><button id="analysisRecovery" hidden></button><button id="analysisRetry" data-i18n="ui.retry" hidden></button><button id="analysisLogs" data-i18n="ui.logs" hidden></button><button id="analysisCancel" data-i18n="ui.cancel_analysis" hidden></button></div></div>
+        </section>
+        </div>
+        </div>
+        <span id="formStatus" class="muted" role="status"></span>
+        <section id="enginePreparation" class="statusPanel operationPanel" aria-labelledby="enginePreparationTitle" hidden>
+          <div class="operationHeader"><div class="sectionHeading"><svg class="operationIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 2v3m6-3v3M9 19v3m6-3v3M2 9h3m-3 6h3M19 9h3m-3 6h3"/></svg><h2 id="enginePreparationTitle" data-i18n="preparation.label"></h2></div><div class="actions">
+            <button id="enginePreparationCancel" type="button" class="quiet" data-i18n="ui.cancel"></button>
+            <button id="enginePreparationRetry" type="button" data-i18n="ui.retry" hidden></button>
+          </div></div>
+          <p data-help-for="enginePreparationTitle" data-i18n="preparation.help"></p>
+          <ol id="enginePreparationSteps" class="operationSteps" aria-label="">
+            <li id="engineStepCheck" data-i18n="preparation.step_check"></li><li id="engineStepGPU" data-i18n="preparation.step_gpu"></li><li id="engineStepVerify" data-i18n="preparation.step_verify"></li>
+          </ol>
+          <p id="enginePreparationStatus" role="status" aria-live="polite"></p>
+          <progress id="enginePreparationProgress" aria-labelledby="enginePreparationStatus"></progress>
+          <details id="enginePreparationFailure" hidden><summary id="enginePreparationDetails" data-i18n="ui.error_details"></summary><pre id="enginePreparationTechnical" class="technicalDetails"></pre></details>
+        </section>
+        <div class="actions pageActions"><button id="start" data-i18n="ui.start" disabled></button><button id="openPreview" class="primary" data-i18n="ui.open_preview" disabled></button></div>
+      </fieldset>
+      <section id="batchReport" class="inset" aria-labelledby="batchStatus" hidden>
+        <p id="batchStatus" role="status"></p><progress id="batchProgress" aria-labelledby="batchStatus" hidden></progress>
+        <button id="batchCancel" data-i18n="ui.batch_cancel" hidden></button><div id="batchResults"></div>
+      </section>
+    </section>
+    <section id="page-preview" class="page" hidden>
+      <header><div class="pageHeading"><button id="previewBack" class="backButton" data-i18n="ui.back_options"></button><h1 id="previewTitle" data-i18n="nav.preview"></h1></div></header>
+      <p data-help-for="previewTitle" data-i18n="ui.preview_hint"></p>
+      <section class="previewWorkspace">
+        <div class="previewToolbar">
+          <fieldset id="previewRange"><label class="inlineField"><span data-i18n="ui.preview_duration"></span><select id="previewDuration"><option value="frame" selected data-i18n="ui.one_frame"></option><option value="1" data-i18n="ui.preview_duration_1"></option><option value="2" data-i18n="ui.preview_duration_2"></option><option value="5" data-i18n="ui.preview_duration_5"></option></select></label><input id="previewStart" type="hidden" value="0"></fieldset>
+          <button id="previewRender" class="primary" data-i18n="ui.generate_preview" disabled></button>
+          <button id="previewCancel" data-i18n="ui.cancel_preview" hidden></button>
+        </div>
+        <div id="compareViewport" tabindex="0" role="group" aria-labelledby="previewTitle">
+          <video id="sourceVideo" playsinline preload="metadata"></video>
+          <div id="compareReady" hidden>
+            <video id="compareEnhanced" muted playsinline preload="auto" aria-hidden="true" hidden></video><canvas id="compareEnhancedFrame" aria-hidden="true"></canvas>
+            <div id="compareBefore"><video id="compareOriginal" muted playsinline preload="auto" aria-hidden="true" hidden></video><canvas id="compareOriginalFrame" aria-hidden="true"></canvas></div>
+            <button id="compareLine" type="button" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><span aria-hidden="true">↔</span></button>
+            <span class="compareLabel before" data-i18n="ui.original"></span><span class="compareLabel after" data-i18n="ui.enhanced"></span>
+          </div>
+        </div>
+        <div class="previewTransport">
+          <button id="previewPrevious" type="button">←</button><button id="previewPlay" type="button" data-i18n="ui.play"></button><button id="previewNext" type="button">→</button>
+          <label class="inlineField"><span data-i18n="ui.seek_step"></span><select id="previewStep"><option value="frame" data-i18n="ui.one_frame"></option><option value="1" data-i18n="ui.preview_duration_1"></option><option value="2" data-i18n="ui.preview_duration_2"></option><option value="5" data-i18n="ui.preview_duration_5"></option></select></label>
+          <output id="sourceTime">00:00.000</output><output id="sourceDuration"></output>
+        </div>
+        <div id="sourceTransport"><input id="sourceTimeline" type="range" min="0" max="0" step="1" value="0"></div>
+        <div id="compareTransport" hidden><input id="compareFrame" type="range" min="0" max="0" value="0" step="1"><output id="compareFrameValue"></output></div>
+        <div class="previewToolbar viewerTools">
+          <label class="inlineField"><span data-i18n="ui.view_mode"></span><select id="previewView"><option value="source" data-i18n="ui.original"></option><option value="compare" data-i18n="ui.compare_mode" disabled></option></select></label>
+          <label id="compareSplitControl" class="inlineField" hidden><span data-i18n="ui.compare_split"></span><input id="compareSplit" type="range" min="0" max="100" value="50"></label>
+          <div class="zoomControls"><button id="previewZoomOut" type="button">−</button><output id="previewZoom">100%</output><button id="previewZoomIn" type="button">+</button><button id="previewFit" type="button" data-i18n="ui.fit_view"></button></div>
+        </div>
+        <div id="sourcePlayback"><p id="sourcePlaybackStatus" class="muted" role="status"></p><button id="sourceRetry" data-i18n="ui.retry" hidden></button></div>
+        <p id="previewStatus" class="muted" role="status" hidden></p>
+        <progress id="previewProgress" aria-labelledby="previewStatus" hidden></progress>
+      </section>
+      <details id="previewFailure" hidden><summary data-i18n="ui.error_details"></summary><pre class="technicalDetails" id="previewFailureDetail"></pre></details>
+      <div id="previewRecovery" class="actions" hidden></div>
+      <p id="draftCheckStatus" role="status" hidden></p>
+      <p id="compareHint" data-help-for="previewTitle" data-i18n="ui.compare_controls"></p>
+      <p data-help-for="previewTitle" data-i18n="ui.preview_display_note"></p>
+      <details class="previewDetails"><summary data-i18n="ui.preview_details"></summary><p id="previewSummary"></p><p id="previewDisk"></p><button id="draftCheck" data-i18n="ui.preflight_check"></button></details>
+      <div class="actions pageActions"><button id="previewCommit" class="primary" data-i18n="ui.add_to_queue" disabled></button></div>
+    </section>
+    <section id="page-queue" class="page" hidden>
+      <header><div><h1 id="queueTitle" data-i18n="nav.queue"></h1><p id="queueCount"></p></div><button id="addMore" class="primary" data-i18n="nav.add"></button></header>
+      <div class="toolbar"><button id="queueToggle"></button><button id="clearQueue" class="danger" data-i18n="ui.clear_queue"></button></div>
+      <p id="queueState" class="notice"></p><p data-help-for="queueTitle" data-i18n="ui.reorder_hint"></p>
+      <div id="queue" class="jobList"></div><p data-help-for="queueTitle" data-i18n="ui.resume_note"></p>
+    </section>
+    <section id="page-history" class="page" hidden>
+      <header><h1 id="historyTitle" data-i18n="nav.history"></h1><button id="clearHistory" class="danger" data-i18n="ui.clear_history"></button></header>
+      <p data-help-for="historyTitle" data-i18n="ui.history_hint"></p>
+      <label class="filter"><span data-i18n="ui.filter"></span><select id="historyFilter"><option value="all" data-i18n="ui.all"></option><option value="completed" data-i18n="status.completed"></option><option value="failed" data-i18n="status.failed"></option><option value="cancelled" data-i18n="status.cancelled"></option></select></label>
+      <div id="history" class="jobList"></div>
+    </section>
+    <section id="page-settings" class="page" hidden>
+      <header><h1 data-i18n="nav.settings"></h1></header>
+      <section class="settingsGroup"><h2 id="generalTitle" data-i18n="ui.general"></h2><div class="grid">
+        <label><span data-i18n="ui.language"></span><select id="language"><option value="tr">Türkçe</option><option value="en">English</option></select></label>
+        <label><span data-i18n="ui.theme"></span><select id="theme"><option value="dark" data-i18n="ui.dark"></option><option value="light" data-i18n="ui.light"></option></select></label>
+        <label><span data-i18n="ui.default_gpu"></span><select id="default_gpu"></select></label>
+      </div><label class="check"><input id="sound" type="checkbox"><span data-i18n="ui.sound"></span></label>
+      <label class="check"><input id="notifications" type="checkbox"><span data-i18n="ui.notifications"></span></label>
+      <label class="check"><input id="context_menu" type="checkbox"><span data-i18n="ui.context_menu"></span></label><p data-help-for="generalTitle" data-i18n="ui.context_note"></p></section>
+      <section class="settingsGroup"><h2 id="metricsTitle" data-i18n="ui.live_metrics"></h2><div id="metricSettings" class="grid three"></div><p data-help-for="metricsTitle" data-i18n="ui.vram_scope"></p></section>
+      <section class="settingsGroup"><h2 data-i18n="ui.retention"></h2><label><span data-i18n="ui.retention_label"></span><select id="resume_retention"><option value="pending" disabled data-i18n="ui.retention_pending"></option><option value="30" data-i18n="ui.retention_30"></option><option value="never" data-i18n="ui.retention_never"></option></select></label><p class="muted" data-i18n="ui.retention_hint"></p></section>
+      <section class="settingsGroup"><h2 data-i18n="ui.runtime_title"></h2><p id="runtime"></p><p id="setupStatus" role="status"></p><p id="setupPackage" class="muted" hidden></p><details id="setupFailure" hidden><summary data-i18n="ui.error_details"></summary><pre id="setupFailureDetail" class="technicalDetails"></pre></details><progress id="setupProgress" aria-labelledby="setupStatus" hidden></progress><p class="muted" data-i18n="ui.setup_scope"></p><div class="actions"><button id="setupCheck" data-i18n="ui.setup_check"></button><button id="logs" data-i18n="ui.logs"></button><button id="exportDiagnostics" data-i18n="ui.export_diagnostics"></button></div><p class="muted" data-i18n="ui.diagnostics_privacy"></p><p id="diagnosticsStatus" role="status"></p></section>
+      <section class="settingsGroup"><h2 data-i18n="ui.temp_files"></h2><p class="muted" data-i18n="ui.temp_scope"></p><button id="storageRefresh" data-i18n="ui.storage_refresh"></button><p id="storageStatus" role="status"></p><div id="storageList" class="jobList"></div></section>
+    </section>
+    <p id="closeStatus" role="status" hidden></p>
+  </main>
+  <div id="fileDropOverlay" aria-hidden="true"><div class="dropPrompt"><span class="uploadGlyph" aria-hidden="true">↑</span><strong data-i18n="ui.drop_release"></strong></div></div>
+  <dialog id="confirmation" aria-labelledby="confirmTitle" aria-describedby="confirmBody"><form method="dialog"><h2 id="confirmTitle" data-dialog-title></h2><p id="confirmBody" data-dialog-body></p><div class="actions"><button id="confirmAccept" value="confirm" class="danger"></button><button value="cancel" autofocus></button></div></form></dialog>
+  <dialog id="details" aria-labelledby="detailTitle"><h2 id="detailTitle"></h2><dl id="detailBody"></dl><form method="dialog"><button data-i18n="ui.close"></button></form></dialog>
+  <script src="platform.js"></script>
+  <script src="wait-progress.js"></script>
+  <script src="compare.js"></script>
+  <script src="color.js"></script>
+  <script src="presets.js"></script>
+  <script src="batch.js"></script>
+  <script src="preparation.js"></script>
+  <script src="file-drop.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

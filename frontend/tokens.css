@@ -1,0 +1,39 @@
+:root {
+  color-scheme: dark;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
+  --control-sm: 32px; --control-md: 40px; --control-lg: 48px;
+  --icon-sm: 16px; --icon-md: 20px; --icon-lg: 24px;
+  --radius-control: 6px; --radius-card: 8px; --radius-dialog: 12px; --radius-pill: 999px;
+  --border-width: 1px; --focus-width: 2px; --focus-offset: 2px;
+  --font-family: 'Segoe UI Variable', 'Segoe UI', sans-serif;
+  --type-title: 600 24px/32px var(--font-family);
+  --type-section: 600 18px/24px var(--font-family);
+  --type-body: 400 14px/20px var(--font-family);
+  --type-caption: 400 12px/16px var(--font-family);
+  --surface-app: #061225; --surface-panel: #0b1b31; --surface-field: #0b192b;
+  --surface-selected: #113777; --surface-overlay: #020915ba;
+  --color-text: #edf3ff; --color-muted: #a4b7d5; --color-border: #526887;
+  --color-accent: #78a7ff; --color-primary: #0753ec; --color-on-primary: #fff;
+  --color-success: #5ac99c; --color-warning: #f0c479; --color-danger: #ff939e;
+  --elevation-0: none; --elevation-1: 0 2px 8px #0002; --elevation-2: 0 8px 32px #0006;
+  --motion-fast: 100ms; --motion-standard: 200ms; --motion-slow: 300ms;
+  --sidebar-width: 184px; --content-width: 1040px;
+}
+body.light {
+  color-scheme: light;
+  --surface-app: #edf3fb; --surface-panel: #fff; --surface-field: #f4f7fc;
+  --surface-selected: #dce9ff; --surface-overlay: #14264166;
+  --color-text: #142641; --color-muted: #4d617e; --color-border: #70839e;
+  --color-accent: #195bcc; --color-primary: #1357d9;
+  --color-success: #176b47; --color-warning: #805311; --color-danger: #b82e40;
+}
+@media (forced-colors: active) {
+  :root, body.light {
+    --surface-app: Canvas; --surface-panel: Canvas; --surface-field: Canvas;
+    --surface-selected: Highlight; --surface-overlay: Canvas;
+    --color-text: CanvasText; --color-muted: CanvasText; --color-border: ButtonText;
+    --color-accent: Highlight; --color-primary: Highlight; --color-on-primary: HighlightText;
+    --color-success: CanvasText; --color-warning: CanvasText; --color-danger: CanvasText;
+    --elevation-1: none; --elevation-2: none;
+  }
+}
