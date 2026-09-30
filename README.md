@@ -1,29 +1,83 @@
+<p align="center"><img src="frontend/assets/img/logo.png" alt="Borasuki logo" width="112"></p>
+
+<h1 align="center">Borasuki</h1>
+
+<p align="center">A focused Windows desktop app for 2× upscaling anime and animation videos.</p>
+
+<p align="center"><code>Windows 10/11</code> · <code>NVIDIA GPU</code> · <code>TensorRT</code> · <code>Public beta</code></p>
+
 <p align="center">
-  <img src="frontend/assets/img/logo.png" alt="Borasuki logo" width="128">
+  <a href="https://github.com/huseyincancalti/Borasuki/releases/download/v1.0.0-beta.1/Borasuki-Setup-1.0.0-beta.1-win64.exe"><strong>Download for Windows</strong></a>
+  · <a href="#system-requirements">Check requirements</a>
+  · <a href="#quick-start">Get started</a>
 </p>
 
-# Borasuki
+Borasuki is for people processing anime or other animated footage who want to create a 2× video, inspect a short before/after preview, and manage jobs in one place. Optional denoise and conservative color controls can improve a source, but they cannot restore detail that was never present. Results vary by video.
 
-Borasuki is a Windows desktop app for upscaling anime and animation videos. It combines 2× Real-CUGAN processing, optional denoise, color controls, short before/after previews, and a persistent job queue.
+## Key features
+
+- **2× upscaling:** Real-CUGAN inference through TensorRT FP16 on a compatible NVIDIA GPU.
+- **Independent controls:** optional denoise with three levels; Adaptive, Reference, Original, and manual color modes. Adaptive selects one grade for the whole video.
+- **Preview and queue:** compare a short original/processed section before committing, add one or multiple videos, and manage jobs with state-appropriate pause, resume, retry, and cancel actions.
+- **MP4 or MKV output:** HEVC Main10 hardware encoding. MP4 warns before dropping incompatible subtitles or attachments; incompatible audio is not silently discarded.
 
 ## Download
 
-Download the Windows installer from the [Releases page](https://github.com/huseyincancalti/Borasuki/releases). Pre-releases are for testing, not a stable v1.0 release. Windows 10/11 x64, a compatible NVIDIA GPU and driver, an internet connection, and at least 7 GB of free space are required. There is no CPU fallback.
+**Latest public beta:** [Borasuki 1.0.0 beta 1](https://github.com/huseyincancalti/Borasuki/releases/tag/v1.0.0-beta.1) · [Windows installer](https://github.com/huseyincancalti/Borasuki/releases/download/v1.0.0-beta.1/Borasuki-Setup-1.0.0-beta.1-win64.exe)
 
-The installer adds the desktop app and installs Microsoft WebView2 if needed. On first launch, open the setup screen and install the processing components: approximately 3 GB are downloaded directly from their publishers and checked against pinned SHA-256 hashes. Downloads can resume after an interruption. The first processing-engine preparation for a chosen video/GPU/settings combination may still take several minutes; it completes before that job can enter the queue.
+The installer is about 30 MB. First-time in-app setup downloads approximately 3 GB of processing components directly from their publishers and checks pinned SHA-256 hashes. Interrupted downloads can resume. This is a **pre-release for testing**, not a stable 1.0 release.
 
-To run from source, install Python 3.13 dependencies with `py -3.13 -m pip install -e .`, then run `py -3.13 main.py`. A compatible local processing runtime is still required.
+The installer is not code-signed, so Windows may show a reputation warning. Its SHA-256 is listed on the [release page](https://github.com/huseyincancalti/Borasuki/releases/tag/v1.0.0-beta.1).
 
-## Architecture
+## System requirements
 
-- **Desktop UI:** HTML, CSS, and JavaScript in a local WebView2 window, connected to a Python service through pywebview.
-- **Video pipeline:** FFMS2 decodes frames; VapourSynth and Real-CUGAN perform 2× processing through TensorRT on NVIDIA GPUs; FFmpeg creates the output video. MP4 and MKV are supported.
-- **Color:** Adaptive analyzes samples from the video and applies one conservative grade to the whole video. Reference, Original, and manual controls are also available. Scene-by-scene color correction is not yet part of the production pipeline.
-- **Jobs:** SQLite stores the queue and presets; settings are stored as JSON. Rendering uses recoverable segments, with pause, resume, cancellation, and short before/after previews.
+| Required | Details |
+| --- | --- |
+| Operating system | Windows 10 or 11, x64 |
+| Graphics | Compatible NVIDIA GPU and driver; no CPU fallback |
+| Storage | At least 7 GB free for initial setup |
+| Network | Internet connection for first-time downloads |
 
-Source videos stay in their original folders, and output videos go to the folder you choose. Job history, settings, logs, and caches stay on your computer in `%LOCALAPPDATA%\KaraKedi\Borasuki`. A new installation starts empty and does not import an older local workspace. Uninstalling the app does not delete this local data. Borasuki does not upload your media or job history; you may inspect, share, or delete your local files yourself.
+This beta was tested on Windows 11 with an RTX 3050 Laptop GPU (4 GB VRAM). That is a **tested configuration, not a minimum GPU specification**. Other hardware has not been broadly validated. The installer adds Microsoft WebView2 if it is missing.
 
-Current limitations: only compatible SDR/progressive/constant-frame-rate sources are accepted, visual quality varies by source, and scene-by-scene color correction is not yet available. See [Third-party notices](THIRD_PARTY_NOTICES.md) for the components downloaded during setup.
+## Quick start
+
+1. Download and run the [installer](https://github.com/huseyincancalti/Borasuki/releases/download/v1.0.0-beta.1/Borasuki-Setup-1.0.0-beta.1-win64.exe).
+2. Open Borasuki and complete the in-app processing setup.
+3. Add a video, choose denoise and color settings, an output folder, and MP4 or MKV.
+4. Let the selected TensorRT engine prepare, then preview a short section or add the job to the queue. A new video/GPU/settings combination may take several minutes to prepare.
+
+## How it works
+
+`FFMS2 decode → VapourSynth + Real-CUGAN → TensorRT FP16 → FFmpeg + NVIDIA NVENC output`
+
+The local WebView2 interface talks to a Python service. SQLite stores jobs and presets; rendering uses recoverable segments. Adaptive color analyzes samples and applies one conservative grade across the video, not scene-by-scene correction.
+
+## Local data and privacy
+
+Source videos stay where you put them; outputs go to your chosen folder. History, settings, logs, packages, and caches remain on your computer under `%LOCALAPPDATA%\KaraKedi\Borasuki`. A fresh installation starts empty, and uninstalling leaves your own app data in place. Borasuki does not automatically upload videos, job history, or diagnostics; you decide whether to share diagnostic files.
+
+## Known limitations
+
+- Input must be compatible SDR, progressive, constant-frame-rate video. HDR, interlaced, and variable-frame-rate sources are not supported in this beta.
+- Visual gains depend on the source; upscaling and denoise can also soften fine detail. Check a preview before a long job.
+- Adaptive color is video-wide, not scene-aware. First-time engine preparation can be slow.
+- Clean-install behavior and GPU compatibility have been tested on a limited set of systems.
+
+## Run from source
+
+With Python 3.13 on Windows:
+
+```powershell
+py -3.13 -m pip install -e .
+py -3.13 main.py
+```
+
+Complete the in-app processing setup before running a job. The Windows packaging entry point is [`installer/build.ps1`](installer/build.ps1).
+
+## Third-party components and license
+
+Borasuki's source is available under the [MIT License](LICENSE). Downloaded processing components have their own licenses and terms; see [Third-party notices](THIRD_PARTY_NOTICES.md).
 
 ---
 
