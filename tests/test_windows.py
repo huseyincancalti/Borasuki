@@ -56,3 +56,13 @@ class WindowsTests(unittest.TestCase):
         self.assertNotIn(filename, args)
         self.assertEqual(run.call_args.kwargs['creationflags'], subprocess.CREATE_NO_WINDOW)
         self.assertLessEqual(run.call_args.kwargs['timeout'], 15)
+
+    def test_packaged_context_menu_launches_exe_not_missing_python_or_main(self):
+        with patch.object(windows, 'winreg') as registry, \
+                patch.object(windows.sys, 'frozen', True, create=True), \
+                patch.object(windows.sys, 'executable', 'C:/App Space/Borasuki.exe'):
+            windows.context_menu(True, 'en')
+        commands = [call.args[4] for call in registry.SetValueEx.call_args_list
+                    if call.args[1] == '' and '%1' in call.args[4]]
+        self.assertEqual(len(commands), len(windows.EXTENSIONS))
+        self.assertEqual(set(commands), {'"C:/App Space/Borasuki.exe" "%1"'})

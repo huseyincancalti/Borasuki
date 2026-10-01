@@ -22,7 +22,8 @@ PIPE = r"\\.\pipe\Borasuki-" + hashlib.sha256(str(DATA).encode()).hexdigest()[:1
 
 def context_menu(enabled: bool, language: str):
     label = translate(load_catalog(language), "menu.upscale")
-    command = subprocess.list2cmdline([str(Path(sys.executable).with_name("pythonw.exe")), str(ROOT / "main.py")]) + ' "%1"'
+    launcher = [sys.executable] if getattr(sys, 'frozen', False) else [str(Path(sys.executable).with_name("pythonw.exe")), str(ROOT / "main.py")]
+    command = subprocess.list2cmdline(launcher) + ' "%1"'
     for extension in EXTENSIONS:
         path = rf"Software\Classes\SystemFileAssociations\{extension}\shell\Borasuki"
         if enabled:

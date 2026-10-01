@@ -1,4 +1,13 @@
 {
+  "update.title": "Updates",
+  "update.check": "Check for updates",
+  "update.open": "View release and download",
+  "update.idle": "Installed version: {current}.",
+  "update.checking": "Checking for updates… Installed version: {current}.",
+  "update.available": "Borasuki {version} is available. Installed version: {current}.",
+  "update.up_to_date": "Borasuki {current} is up to date for this release channel.",
+  "update.error": "Could not check for updates. Installed version: {current}. Check your connection and try again.",
+  "update.privacy": "Checks GitHub on startup. No videos, history or diagnostics are sent. Nothing is downloaded or installed automatically.",
   "ui.temp_protected": "An operation/file is in use, or no recognized files can be safely cleaned. Refresh storage after operations finish.",
   "storage.cache": "Rebuildable engine cache",
   "storage.orphan": "Old job files with no Queue/History record",

@@ -1,4 +1,13 @@
 {
+  "update.title": "Güncellemeler",
+  "update.check": "Güncellemeleri kontrol et",
+  "update.open": "Sürümü ve indirme sayfasını aç",
+  "update.idle": "Kurulu sürüm: {current}.",
+  "update.checking": "Güncellemeler kontrol ediliyor… Kurulu sürüm: {current}.",
+  "update.available": "Borasuki {version} kullanılabilir. Kurulu sürüm: {current}.",
+  "update.up_to_date": "Borasuki {current} bu sürüm kanalı için güncel.",
+  "update.error": "Güncellemeler kontrol edilemedi. Kurulu sürüm: {current}. Bağlantını kontrol edip tekrar dene.",
+  "update.privacy": "Açılışta GitHub kontrol edilir. Video, geçmiş veya tanılama bilgisi gönderilmez. Otomatik indirme veya kurulum yapılmaz.",
   "ui.temp_protected": "İşlem/dosya kullanımda veya güvenle temizlenebilecek tanınan dosya yok. İşlem bittiyse alan listesini yenile.",
   "storage.cache": "Yeniden üretilebilir işlem önbelleği",
   "storage.orphan": "Kuyruk veya geçmiş kaydı olmayan eski iş dosyaları",

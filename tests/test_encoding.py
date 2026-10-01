@@ -7,9 +7,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 from borasuki.errors import failure_info, RenderDiagnostics
-from borasuki.pipeline import check_hardware_encoder, mux_args
+from borasuki.pipeline import check_hardware_encoder, execute, mp4_timing_filter, mux_args, source_signature
 from borasuki.process import ProcessError, Interrupted
 from borasuki.profile import ReferenceProfile, segment_encode_args
+from borasuki.storage import atomic_json
 
 
 class SegmentEncodingTests(unittest.TestCase):
@@ -51,8 +52,11 @@ class SegmentEncodingTests(unittest.TestCase):
         self.assertEqual(self.hardware, before)
 
     def test_final_mp4_mux_omits_only_confirmed_unsupported_tracks(self):
-        args = mux_args(self.runtime, Path('segments.ffconcat'), Path('source.mkv'),
-                        Path('output.partial.mp4'), 'a' * 32, True, Fraction(24000, 1001))
+        timing = 'setts=prescale=1:time_base=1001/24000:pts=PTS:dts=DTS:duration=1'
+        with patch('borasuki.pipeline.mp4_timing_filter', return_value=timing) as detect:
+            args = mux_args(self.runtime, Path('segments.ffconcat'), Path('source.mkv'),
+                            Path('output.partial.mp4'), 'a' * 32, True, Fraction(24000, 1001))
+            detect.assert_called_once()
         self.assertIn(('-map', '1:a?'), list(zip(args, args[1:])))
         self.assertNotIn('1:s?', args)
         self.assertNotIn('1:t?', args)
@@ -67,6 +71,65 @@ class SegmentEncodingTests(unittest.TestCase):
         self.assertIn('1:s?', mkv)
         self.assertIn('1:t?', mkv)
         self.assertNotIn('-bsf:v', mkv)
+
+    def test_mp4_timing_detects_actual_runtime_capabilities(self):
+        base_help = b' -time_base <rational>\n -pts <string>\n -dts <string>\n -duration <string>\n'
+        stop = threading.Event()
+        for modern in (False, True):
+            with self.subTest(modern=modern), patch('borasuki.pipeline.ProcessGroup') as group:
+                capture = group.return_value.__enter__.return_value.capture
+                capture.return_value = base_help + (b' -prescale <boolean>\n' if modern else b'')
+                timing = mp4_timing_filter(self.runtime, Fraction(24000, 1001), stop)
+                group.assert_called_once_with(stop)
+                capture.assert_called_once_with(['encoder.exe', '-hide_banner', '-nostdin', '-h', 'bsf=setts'], timeout=15)
+                if modern:
+                    self.assertEqual(timing, 'setts=prescale=1:time_base=1001/24000:pts=PTS:dts=DTS:duration=1')
+                else:
+                    self.assertEqual(timing, 'setts=time_base=1001/24000:pts=round(PTS*TB/TB_OUT):dts=round(DTS*TB/TB_OUT):duration=1')
+
+    def test_mp4_timing_rejects_missing_options_even_if_help_exits_successfully(self):
+        for help_text in (b"Unknown bit stream filter 'setts'", b' -time_base <rational>\n'):
+            with patch('borasuki.pipeline.ProcessGroup') as group:
+                group.return_value.__enter__.return_value.capture.return_value = help_text
+                with self.assertRaisesRegex(ProcessError, 'lacks required MP4 timing options'):
+                    mp4_timing_filter(self.runtime, Fraction(24), threading.Event())
+
+    def test_mp4_timing_failure_and_cancel_are_not_swallowed(self):
+        for failure in (ProcessError('FFmpeg unavailable'), Interrupted()):
+            with patch('borasuki.pipeline.ProcessGroup') as group:
+                group.return_value.__enter__.return_value.capture.side_effect = failure
+                with self.assertRaises(type(failure)):
+                    mp4_timing_filter(self.runtime, Fraction(24), threading.Event())
+
+    def test_mux_reuses_preflight_timing_and_mkv_does_not_probe(self):
+        with patch('borasuki.pipeline.mp4_timing_filter') as detect:
+            args = mux_args(self.runtime, Path('segments'), Path('source'), Path('out.mp4'),
+                            'test', True, Fraction(24), timing='verified-filter')
+            self.assertIn('verified-filter', args)
+            mux_args(self.runtime, Path('segments'), Path('source'), Path('out.mkv'), 'test', False)
+            detect.assert_not_called()
+
+    def test_missing_mp4_timing_fails_before_gpu_render(self):
+        with tempfile.TemporaryDirectory() as folder:
+            work = Path(folder)
+            source = work / 'source.mp4'
+            source.write_bytes(b'test source')
+            output = work / 'result.mp4'
+            atomic_json(work / 'source_info.json', {'width': 64, 'height': 64, 'frames': 1,
+                        'fps_num': 24, 'fps_den': 1, 'output_range': 'limited'})
+            (work / 'source.timecodes.txt').write_text('# timecode format v2\n0\n')
+            job = {'id': 'test', 'source': str(source), 'output': str(output), 'work': str(work),
+                   'runtime': self.runtime, 'source_signature': source_signature(source),
+                   'media': {'fps': 24, 'duration': 1 / 24}, 'color_mode': 'reference'}
+            with patch('borasuki.pipeline.mp4_timing_filter', side_effect=ProcessError('unsupported setts')), \
+                    patch('borasuki.pipeline.check_hardware_encoder') as hardware, \
+                    patch('borasuki.pipeline.render_segment') as render:
+                with self.assertRaisesRegex(ProcessError, 'unsupported setts'):
+                    execute(job, threading.Event(), lambda **_: None)
+                hardware.assert_not_called()
+                render.assert_not_called()
+                self.assertFalse(output.exists())
+                self.assertEqual(list(work.glob('segment-*.mkv')), [])
 
     def test_mp4_mux_requires_verified_fps(self):
         with self.assertRaisesRegex(ValueError, 'verified frame rate'):

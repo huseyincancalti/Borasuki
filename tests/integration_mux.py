@@ -10,15 +10,19 @@ from fractions import Fraction
 from pathlib import Path
 
 
-def main(runtime_folder, app_folder):
-    sys.path.insert(0, str(Path(app_folder).resolve() / '_internal'))
+def main(runtime_folder, app_folder=None):
+    root = Path(app_folder).resolve() / '_internal' if app_folder else Path(__file__).resolve().parents[1]
+    sys.path.insert(0, str(root))
     from borasuki.pipeline import mux_args, verify_video
     from borasuki.storage import ROOT
-    assert ROOT == Path(app_folder).resolve() / '_internal'
+    assert ROOT == root
     runtime = {name: str(Path(runtime_folder) / f'{name}.exe') for name in ('ffmpeg', 'ffprobe')}
 
     def run(*args):
-        return subprocess.run(args, check=True, capture_output=True, timeout=30).stdout
+        result = subprocess.run(args, capture_output=True, timeout=30)
+        if result.returncode:
+            raise RuntimeError(result.stderr.decode('utf-8', 'replace'))
+        return result.stdout
 
     def hashes(path):
         result = run(runtime['ffmpeg'], '-v', 'error', '-xerror', '-i', str(path),
@@ -61,6 +65,6 @@ def main(runtime_folder, app_folder):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('runtime_folder')
-    parser.add_argument('app_folder')
+    parser.add_argument('app_folder', nargs='?', help='Installed app folder; omit to test this source tree.')
     args = parser.parse_args()
     main(args.runtime_folder, args.app_folder)

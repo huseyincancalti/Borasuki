@@ -1,4 +1,4 @@
-#define AppVersion "1.0.0-beta.2"
+#define AppVersion "1.0.0-beta.3"
 #ifndef BuildRoot
   #error BuildRoot must point to the verified PyInstaller Borasuki folder.
 #endif
@@ -17,6 +17,7 @@ DefaultDirName={localappdata}\Programs\Borasuki
 DefaultGroupName=Borasuki
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
+CreateUninstallRegKey=not IsVerificationInstall
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputBaseFilename=Borasuki-Setup-{#AppVersion}-win64
@@ -34,14 +35,19 @@ Source: "{#BuildRoot}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdi
 Source: "{#WebView2Bootstrapper}"; DestDir: "{tmp}"; DestName: "MicrosoftEdgeWebview2Setup.exe"; Flags: deleteafterinstall
 
 [Icons]
-Name: "{autoprograms}\Borasuki"; Filename: "{app}\Borasuki.exe"
-Name: "{autodesktop}\Borasuki"; Filename: "{app}\Borasuki.exe"; Tasks: desktopicon
+Name: "{autoprograms}\Borasuki"; Filename: "{app}\Borasuki.exe"; Check: not IsVerificationInstall
+Name: "{autodesktop}\Borasuki"; Filename: "{app}\Borasuki.exe"; Tasks: desktopicon; Check: not IsVerificationInstall
 
 [Run]
 Filename: "{tmp}\MicrosoftEdgeWebview2Setup.exe"; Parameters: "/silent /install"; StatusMsg: "Installing Microsoft WebView2 Runtime…"; Flags: waituntilterminated; Check: not HasWebView2
 Filename: "{app}\Borasuki.exe"; Description: "Launch Borasuki"; Flags: nowait postinstall skipifsilent
 
 [Code]
+function IsVerificationInstall(): Boolean;
+begin
+  Result := ExpandConstant('{param:BORASUKIVERIFY|0}') = '1';
+end;
+
 function HasWebView2(): Boolean;
 var
   Version: String;

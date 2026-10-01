@@ -520,12 +520,27 @@ async function refresh(fresh = false) {
     renderJobs();
     app.color?.render(app.snapshot);
     renderSetup();
+    renderUpdates();
     app.preparation?.render(app.snapshot);
     syncJobActions();
     app.compare?.render(app.snapshot);
   })().finally(() => { app.refreshing = null; });
   return app.refreshing;
 }
+
+let dismissedUpdate = null;
+function renderUpdates() {
+  const result = app.snapshot.updates || {status:'idle', current:'—'};
+  const values = {current:result.current, version:result.version};
+  $('updateStatus').textContent = t('update.' + result.status, values);
+  $('updateCheck').disabled = result.status === 'checking';
+  $('updateSettingsOpen').hidden = result.status !== 'available';
+  $('updateNotice').hidden = result.status !== 'available' || dismissedUpdate === result.version;
+  $('updateNoticeText').textContent = t('update.available', values);
+}
+$('updateCheck').onclick = () => perform(async () => { await call('check_updates'); await refresh(true); }, $('updateCheck'));
+for (const id of ['updateOpen', 'updateSettingsOpen']) $(id).onclick = () => perform(() => call('open_update'), $(id));
+$('updateDismiss').onclick = () => { dismissedUpdate = app.snapshot.updates?.version; renderUpdates(); };
 
 function renderSetup() {
   app.batch?.render(app.snapshot.batch);

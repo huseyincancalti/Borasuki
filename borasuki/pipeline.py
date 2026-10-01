@@ -239,7 +239,23 @@ def validate_checkpoint_range(info: dict, work: Path) -> None:
         raise ValueError('error.render_format_changed')
 
 
-def mux_args(runtime, listing, source, publish, identifier, mp4, fps=None):
+def mp4_timing_filter(runtime, fps, stop):
+    if fps is None or fps <= 0:
+        raise ValueError('MP4 mux requires the verified frame rate.')
+    with ProcessGroup(stop) as group:
+        help_text = group.capture([runtime['ffmpeg'], '-hide_banner', '-nostdin', '-h', 'bsf=setts'], timeout=15)
+    options = set(re.findall(rb'^\s*-(\w+)\s', help_text, re.MULTILINE))
+    if not {b'time_base', b'pts', b'dts', b'duration'} <= options:
+        raise ProcessError('FFmpeg setts lacks required MP4 timing options.\n'
+                           + help_text.decode('utf-8', 'replace')[-3000:])
+    timebase = f'{fps.denominator}/{fps.numerator}'
+    if b'prescale' in options:
+        return f'setts=prescale=1:time_base={timebase}:pts=PTS:dts=DTS:duration=1'
+    # Older setts evaluates timestamps in the input time base.
+    return f'setts=time_base={timebase}:pts=round(PTS*TB/TB_OUT):dts=round(DTS*TB/TB_OUT):duration=1'
+
+
+def mux_args(runtime, listing, source, publish, identifier, mp4, fps=None, *, timing=None):
     args = [runtime['ffmpeg'], '-v', 'error', '-nostdin', '-n', '-f', 'concat', '-safe', '1', '-i', str(listing),
             '-i', str(source), '-map', '0:v:0', '-map', '1:a?']
     if not mp4:
@@ -248,7 +264,8 @@ def mux_args(runtime, listing, source, publish, identifier, mp4, fps=None):
     if mp4:
         if fps is None or fps <= 0:
             raise ValueError('MP4 mux requires the verified frame rate.')
-        timing = f'setts=prescale=1:time_base={fps.denominator}/{fps.numerator}:pts=PTS:dts=DTS:duration=1'
+        if timing is None:
+            timing = mp4_timing_filter(runtime, fps, threading.Event())
         args += ['-bsf:v', timing, '-video_track_timescale', str(fps.numerator),
                  '-tag:v', 'hvc1', '-movflags', '+faststart+use_metadata_tags', '-f', 'mp4']
     return [*args, str(publish)]
@@ -290,6 +307,8 @@ def execute(job: dict, stop: threading.Event, update, segment_frames=240) -> Non
     validate_timecodes(work / "source.timecodes.txt", total, fps, job["media"].get("duration"))
     if abs(float(fps) / job["media"]["fps"] - 1) > 0.002:
         raise ValueError("error.vfr")
+    mp4 = output.suffix.lower() == '.mp4'
+    timing = mp4_timing_filter(runtime, fps, stop) if mp4 else None
     check_hardware_encoder(config, work, info['width'] * 2, info['height'] * 2, fps, stop)
     if job["color_mode"] == "adaptive" and not job.get("configuration"):
         update(stage="analyzing")
@@ -359,7 +378,6 @@ def execute(job: dict, stop: threading.Event, update, segment_frames=240) -> Non
     if stop.is_set():
         raise Interrupted()
     update(stage="muxing", speed=None, eta=None)
-    mp4 = output.suffix.lower() == '.mp4'
     listing = work / "segments.ffconcat"
     # filenames are generated, never derived from user text
     lines = ['ffconcat version 1.0']
@@ -372,7 +390,7 @@ def execute(job: dict, stop: threading.Event, update, segment_frames=240) -> Non
     output.parent.mkdir(parents=True, exist_ok=True)
     publish = output.parent / f".borasuki-{job['id']}.partial{output.suffix.lower()}"
     publish.unlink(missing_ok=True)
-    args = mux_args(runtime, listing, source, publish, job['id'], mp4, fps)
+    args = mux_args(runtime, listing, source, publish, job['id'], mp4, fps, timing=timing)
     with ProcessGroup(stop) as group:
         group.capture(args, timeout=1800)
     update(stage="verifying")

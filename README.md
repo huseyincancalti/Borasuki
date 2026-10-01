@@ -7,7 +7,7 @@
 <p align="center"><code>Windows 10/11</code> · <code>NVIDIA GPU</code> · <code>TensorRT</code> · <code>Public beta</code></p>
 
 <p align="center">
-  <a href="https://github.com/huseyincancalti/Borasuki/releases/download/v1.0.0-beta.2/Borasuki-Setup-1.0.0-beta.2-win64.exe"><strong>Download for Windows</strong></a>
+  <a href="https://github.com/huseyincancalti/Borasuki/releases/download/v1.0.0-beta.3/Borasuki-Setup-1.0.0-beta.3-win64.exe"><strong>Download for Windows</strong></a>
   · <a href="#system-requirements">Check requirements</a>
   · <a href="#quick-start">Get started</a>
 </p>
@@ -20,16 +20,17 @@ Borasuki is for people processing anime or other animated footage who want to cr
 - **Independent controls:** optional denoise with three levels; Adaptive, Reference, Original, and manual color modes. Adaptive selects one grade for the whole video.
 - **Preview and queue:** compare a short original/processed section before committing, add one or multiple videos, and manage jobs with state-appropriate pause, resume, retry, and cancel actions.
 - **MP4 or MKV output:** HEVC Main10 hardware encoding. MP4 warns before dropping incompatible subtitles or attachments; incompatible audio is not silently discarded.
+- **Update notifications:** background checks on startup and a manual check in Settings. Open the release page when you choose; updates are never installed automatically.
 
 ## Download
 
-**Latest public beta:** [Borasuki 1.0.0 beta 2](https://github.com/huseyincancalti/Borasuki/releases/tag/v1.0.0-beta.2) · [Windows installer](https://github.com/huseyincancalti/Borasuki/releases/download/v1.0.0-beta.2/Borasuki-Setup-1.0.0-beta.2-win64.exe)
+**Latest public beta:** [Borasuki 1.0.0 beta 3](https://github.com/huseyincancalti/Borasuki/releases/tag/v1.0.0-beta.3) · [Windows installer](https://github.com/huseyincancalti/Borasuki/releases/download/v1.0.0-beta.3/Borasuki-Setup-1.0.0-beta.3-win64.exe)
 
-Beta 2 fixes a beta 1 packaging defect that prevented analysis and rendering in the installed app. Existing users should install beta 2 over beta 1; local settings and history are preserved.
+Beta 3 fixes MP4 output on legacy FFmpeg runtimes and adds update checks and a mandatory installed-artifact release gate. Close Borasuki and install beta 3 over beta 1/2; local settings and history are preserved. Older versions do not have the update checker, so this first upgrade is manual.
 
 The installer is about 30 MB. First-time in-app setup downloads approximately 3 GB of processing components directly from their publishers and checks pinned SHA-256 hashes. Interrupted downloads can resume. This is a **pre-release for testing**, not a stable 1.0 release.
 
-The installer is not code-signed, so Windows may show a reputation warning. Its SHA-256 is listed on the [release page](https://github.com/huseyincancalti/Borasuki/releases/tag/v1.0.0-beta.2).
+The installer is not code-signed, so Windows may show a reputation warning. Its SHA-256 is listed on the [release page](https://github.com/huseyincancalti/Borasuki/releases/tag/v1.0.0-beta.3).
 
 ## System requirements
 
@@ -44,7 +45,7 @@ This beta was tested on Windows 11 with an RTX 3050 Laptop GPU (4 GB VRAM). That
 
 ## Quick start
 
-1. Download and run the [installer](https://github.com/huseyincancalti/Borasuki/releases/download/v1.0.0-beta.2/Borasuki-Setup-1.0.0-beta.2-win64.exe).
+1. Download and run the [installer](https://github.com/huseyincancalti/Borasuki/releases/download/v1.0.0-beta.3/Borasuki-Setup-1.0.0-beta.3-win64.exe).
 2. Open Borasuki and complete the in-app processing setup.
 3. Add a video, choose denoise and color settings, an output folder, and MP4 or MKV.
 4. Let the selected TensorRT engine prepare, then preview a short section or add the job to the queue. A new video/GPU/settings combination may take several minutes to prepare.
@@ -59,13 +60,15 @@ The local WebView2 interface talks to a Python service. SQLite stores jobs and p
 
 Source videos stay where you put them; outputs go to your chosen folder. History, settings, logs, packages, and caches remain on your computer under `%LOCALAPPDATA%\KaraKedi\Borasuki`. A fresh installation starts empty, and uninstalling leaves your own app data in place. Borasuki does not automatically upload videos, job history, or diagnostics; you decide whether to share diagnostic files.
 
+On startup, the update checker requests the public GitHub release list. This sends no video paths, settings, history or diagnostics. GitHub receives a normal HTTPS request (including your IP address); a failed check does not block processing.
+
 ## Known limitations
 
 - Input must be compatible SDR, progressive, constant-frame-rate video. HDR, interlaced, and variable-frame-rate sources are not supported in this beta.
 - Visual gains depend on the source; upscaling and denoise can also soften fine detail. Check a preview before a long job.
 - Adaptive color is video-wide, not scene-aware. First-time engine preparation can be slow.
 - Clean-install behavior and GPU compatibility have been tested on a limited set of systems.
-- Explorer context-menu launching is not working in this packaged beta; use the app's video picker or drag/drop instead.
+- Update checks need internet access and can fail because of connectivity or GitHub rate limits. Manual checking is available in Settings.
 
 ## Run from source
 
@@ -76,7 +79,7 @@ py -3.13 -m pip install -e .
 py -3.13 main.py
 ```
 
-Complete the in-app processing setup before running a job. The Windows packaging entry point is [`installer/build.ps1`](installer/build.ps1).
+Complete the in-app processing setup before running a job. The Windows packaging entry point is [`installer/build.ps1`](installer/build.ps1). See [release validation](docs/RELEASE_VALIDATION.md) for the required tests and fail-closed publishing workflow.
 
 ## Third-party components and license
 

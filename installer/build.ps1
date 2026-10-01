@@ -1,5 +1,8 @@
 param(
-    [string]$OutputRoot = (Join-Path $env:TEMP 'Borasuki-release-build')
+    [string]$OutputRoot = (Join-Path $env:TEMP 'Borasuki-release-build'),
+    [Parameter(Mandatory=$true)][string]$RuntimeFolder,
+    [Parameter(Mandatory=$true)][string]$CompatibilityRuntimeFolder,
+    [string]$EngineCache
 )
 
 $ErrorActionPreference = 'Stop'
@@ -30,6 +33,8 @@ if (-not (Test-Path -LiteralPath $iscc)) { throw 'Inno Setup 6 compiler is requi
 
 Push-Location $projectRoot
 try {
+    & py -3.13 installer/release_gate.py --source --build $buildRoot
+    if ($LASTEXITCODE -ne 0) { throw 'Source tests failed. Release build stopped.' }
     & py -3.13 -m PyInstaller --noconfirm --clean --distpath (Join-Path $buildRoot 'dist') `
         --workpath (Join-Path $buildRoot 'work') Borasuki.spec
     if ($LASTEXITCODE -ne 0) { throw 'PyInstaller failed.' }
@@ -40,7 +45,11 @@ try {
     & $iscc '/Qp' "/DBuildRoot=$appFolder" "/DWebView2Bootstrapper=$webview" `
         "/O$(Join-Path $buildRoot 'installer')" 'installer\Borasuki.iss'
     if ($LASTEXITCODE -ne 0) { throw 'Inno Setup compile failed.' }
-    Get-FileHash -Algorithm SHA256 (Join-Path $buildRoot 'installer\Borasuki-Setup-1.0.0-beta.2-win64.exe')
+    $gateArgs = @('installer/release_gate.py', '--build', $buildRoot, '--runtime', $RuntimeFolder,
+                  '--compatibility', $CompatibilityRuntimeFolder)
+    if ($EngineCache) { $gateArgs += @('--engine-cache', $EngineCache) }
+    & py -3.13 @gateArgs
+    if ($LASTEXITCODE -ne 0) { throw 'Installed artifact checks failed. Do not publish this installer.' }
 }
 finally {
     Pop-Location

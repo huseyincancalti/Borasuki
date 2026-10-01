@@ -113,6 +113,20 @@ class API:
         logger.info("Frontend connected to application service")
 
     @endpoint
+    def check_updates(self):
+        self._service.updates.request()
+
+    @endpoint
+    def open_update(self):
+        result = self._service.updates.snapshot()
+        if result['status'] == 'available':
+            import webbrowser
+            from borasuki.updates import REPOSITORY, version_key
+            tag = 'v' + result['version']
+            version_key(tag)
+            webbrowser.open(f'{REPOSITORY}/releases/tag/{tag}')
+
+    @endpoint
     def choose_file(self):
         selection = self._window.create_file_dialog(webview.FileDialog.OPEN, allow_multiple=False,
             file_types=("Video (*.mp4;*.mkv;*.avi;*.mov;*.webm;*.m4v)",))
@@ -305,6 +319,7 @@ class API:
 
     def _loaded(self):
         self._window.show()
+        self._service.updates.request()
         document = self._window.dom.document
         # Local JS handles hover feedback; only the real drop crosses the bridge.
         document.events.drop += DOMEventHandler(self._drop, True, True)

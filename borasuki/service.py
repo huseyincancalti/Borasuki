@@ -31,6 +31,7 @@ from borasuki.storage import DATA, ROOT, JobStore, atomic_json
 from borasuki.preview import render as render_preview, validate_range, media_urls
 from borasuki.media_server import MediaServer
 from borasuki.wait_progress import WaitProgress
+from borasuki.updates import UpdateCheck
 
 logger = logging.getLogger(__name__)
 ACTIVE = {"running", "pause_requested", "cancel_requested"}
@@ -47,6 +48,7 @@ class Service:
         self.lock = threading.RLock()
         self.wake = threading.Event()
         self.closing = False
+        self.updates = UpdateCheck()
         self.active_id = None
         self.preview_task = None
         self.engine_task = None
@@ -1123,6 +1125,7 @@ class Service:
                     failure = failure_info(ValueError('error.engine_preparation_required'))
                     self.engine_task.update(status='failed', error=failure['code'], failure=failure)
             return {"runtime": copy.deepcopy(self.runtime), "settings": copy.deepcopy(self.settings), "jobs": jobs,
+                    'updates': self.updates.snapshot(),
                     'preparation': {key: copy.deepcopy(value) for key, value in self.engine_task.items()
                                     if key not in ('config', 'stop')} if self.engine_task else None,
                     "preview": preview, "analysis": analysis,
@@ -1286,6 +1289,7 @@ class Service:
         self.wake.set()
 
     def shutdown(self, timeout=10):
+        self.updates.close()
         self.begin_shutdown(confirmed=True)
         if self.source_server:
             self.source_server.close()

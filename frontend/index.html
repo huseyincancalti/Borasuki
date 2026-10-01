@@ -22,6 +22,7 @@
   <main id="main">
     <div id="error" hidden><p id="errorMessage" role="alert"></p><details id="errorDetails" hidden><summary data-i18n="ui.error_details"></summary><pre id="errorTechnical" class="technicalDetails"></pre></details><div id="errorRecovery" class="actions"></div><div class="actions"><button id="errorLogs" data-i18n="ui.logs"></button><button id="errorDismiss" data-i18n="ui.close"></button></div></div>
     <p id="announcement" class="sr-only" role="status" aria-live="polite"></p>
+    <div id="updateNotice" class="notice" hidden><p id="updateNoticeText" role="status" aria-live="polite"></p><div class="actions"><button id="updateOpen" data-i18n="update.open"></button><button id="updateDismiss" data-i18n="ui.close"></button></div></div>
     <div id="setupGate" class="notice" hidden><p data-i18n="ui.setup_gate"></p><button id="setupOpen" data-i18n="ui.setup_open"></button></div>
     <div id="importStatus" class="notice" role="status" aria-live="polite" hidden><span id="importLabel" data-i18n="ui.importing"></span><progress id="importProgress" aria-labelledby="importLabel"></progress></div>
     <section id="page-add" class="page">
@@ -173,6 +174,7 @@
     </section>
     <section id="page-settings" class="page" hidden>
       <header><h1 data-i18n="nav.settings"></h1></header>
+      <section class="settingsGroup"><h2 data-i18n="update.title"></h2><p id="updateStatus" role="status" aria-live="polite"></p><p class="muted" data-i18n="update.privacy"></p><div class="actions"><button id="updateCheck" data-i18n="update.check"></button><button id="updateSettingsOpen" data-i18n="update.open" hidden></button></div></section>
       <section class="settingsGroup"><h2 id="generalTitle" data-i18n="ui.general"></h2><div class="grid">
         <label><span data-i18n="ui.language"></span><select id="language"><option value="tr">Türkçe</option><option value="en">English</option></select></label>
         <label><span data-i18n="ui.theme"></span><select id="theme"><option value="dark" data-i18n="ui.dark"></option><option value="light" data-i18n="ui.light"></option></select></label>

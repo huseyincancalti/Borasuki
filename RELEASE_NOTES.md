@@ -1,31 +1,27 @@
-# Borasuki 1.0.0 beta 2
+# Borasuki 1.0.0 beta 3
 
-This pre-release fixes blocking defects in beta 1. It is not a stable 1.0 release.
+A compatibility and release-validation update. This is a pre-release for testing, not stable 1.0.
 
-## Fixes
+## Changes
 
-- Include the Python helper files required by the external VSPipe renderer. Beta 1 could open and pass its runtime check but failed analysis and engine preparation with `No module named 'borasuki.storage'`.
-- Preserve exact constant-frame-rate timing when combining MKV checkpoints into MP4, including B-frame ordering and fractional frame rates. Output verification is not weakened; video is stream-copied, not re-encoded.
-- Add an isolated external-import gate to the installer build and an opt-in installed-package processing regression.
+- Fix MP4 output on legacy FFmpeg (including 7.1.1), where `setts.prescale` does not exist. Detect executable capabilities instead of assuming a version. Preserve CFR timing, B-frame display order, frame content and audio without re-encoding the upscaled video.
+- Check required MP4 timestamp options before an expensive render. Keep strict output verification.
+- Add nonblocking update checks on startup, a new-version notice and a manual check in Settings. Compare beta versions numerically. Network failure is recoverable and does not block rendering. Nothing is downloaded or installed automatically.
+- Fix the packaged Explorer context-menu command to launch Borasuki.exe rather than a missing Python launcher.
+- Make source, UI, installed-package, FFmpeg compatibility and GPU output checks mandatory in the release workflow. Publication rejects missing evidence, changed installer hashes and changed source trees.
 
 ## Download and update
 
-Download `Borasuki-Setup-1.0.0-beta.2-win64.exe` below. Install it over beta 1 with Borasuki closed. Your settings, history and caches in `%LOCALAPPDATA%\KaraKedi\Borasuki` are preserved; uninstalling first is unnecessary.
+Download `Borasuki-Setup-1.0.0-beta.3-win64.exe` below. Close Borasuki and install over beta 1/2. Settings, history and caches remain in `%LOCALAPPDATA%\KaraKedi\Borasuki`; uninstalling first is unnecessary. Beta 1/2 do not have update notifications, so upgrading to this version is manual once.
 
-SHA-256: `81691165EE7BFD061483148FA9BF1D0DCF4D61929D50056D0EB95CDBC75BB478`
+Windows 10/11 x64, a compatible NVIDIA GPU/driver and at least 7 GB free disk space are required. Initial setup downloads approximately 3 GB of hash-verified processing components; first-time TensorRT preparation may take minutes.
 
-Windows 10/11 x64, a compatible NVIDIA GPU and driver, internet access for initial setup, and at least 7 GB free disk space are required. Initial setup downloads approximately 3 GB of pinned, hash-verified processing components. First-time TensorRT engine preparation can take several minutes.
+## Release checks
 
-## Verified
+The release gate must pass Python unit/contract/failure tests, JavaScript and WebView2 checks, isolated external renderer imports and installer extraction. Installed files must match the built bundle byte-for-byte. FFmpeg 7.1.1 and the app-owned 8.1.3 runtime are checked at 24 and 24000/1001 FPS with multiple segments, B-frames, audio, exact timestamps and decoded frame hash equality. The installed package is checked with real Adaptive analysis, TensorRT preparation, short 2× MP4/MKV queue outputs, full decode, original/processed Preview and frozen EXE startup/normal shutdown.
 
-- 12 targeted packaging/encoding unit tests passed. The packaging regression fails against the beta 1 specification.
-- The final installer upgraded the existing installation without changing local settings/history/log files.
-- Using the installed package and app-owned runtime, without source-package imports: Adaptive analysis, denoise-2 TensorRT preparation, Queue completion, four-frame 2× MP4 output with audio, and full output decode passed. Original/enhanced one-frame Preview decode also passed.
-- Two-segment MP4 checks at 24 and 24000/1001 FPS passed: exact timestamps, all 18 frames, B-frame order, audio and identical decoded frame hashes.
-- Installed frozen EXE/WebView2 startup and normal shutdown passed. The processing regression exercised installed backend files; a full automated GUI-click workflow was not performed.
+All fixtures are synthetic and isolated. No user videos, history, diagnostic logs or engine caches are included in the installer or public repository.
 
-## Privacy and limitations
+## Known limitations
 
-Videos, settings, history, logs and caches stay local. The installer contains no test videos, personal job data or engine caches. Diagnostics are not uploaded automatically.
-
-Tests were run on one Windows 11 / RTX 3050 Laptop GPU system, not a fresh Windows machine or a broad GPU matrix. Compatible SDR/progressive/CFR input only; Adaptive uses one grade per video, and visual gains vary by source. The installer is not publisher-signed. Explorer context-menu launching remains a known packaged-build limitation; open the app and use its video picker or drag/drop instead.
+Validation is on one Windows 11 / RTX 3050 Laptop GPU system, not a fresh Windows machine or broad GPU matrix. Compatible SDR/progressive/CFR inputs only. Adaptive applies one grade per video, not scene-by-scene correction; visual gains depend on source quality. The installer is not publisher-signed. Update checks require internet access and can fail because of connectivity or GitHub rate limits; Settings offers manual retry. The update request goes to public GitHub and does not include video paths, settings, jobs or diagnostics.

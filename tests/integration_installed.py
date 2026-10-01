@@ -110,6 +110,26 @@ def main(app_folder, runtime_folder, work_folder, engine_cache=None):
                   'source_unchanged': True}
         atomic_json(work / 'report.json', report)
         print('Installed original/enhanced Preview decode passed.', flush=True)
+        mkv_output = work / 'Türkçe output.mkv'
+        second = service.create(str(source), str(mkv_output), 'adaptive', gpu_id, {},
+                                upscale={'scale': 2}, denoise=denoise,
+                                adaptive={'token': token, 'profile': 'normal', 'overrides': {}})
+        service.wake.set()
+        deadline = time.monotonic() + 180
+        while time.monotonic() < deadline and service.jobs[second]['status'] not in ('failed', 'completed'):
+            time.sleep(0.25)
+        assert service.jobs[second]['status'] == 'completed', service.jobs[second].get('failure')
+        mkv_info = probe(mkv_output, runtime, threading.Event(), count=True)
+        mkv_video = video_stream(mkv_info)
+        assert (mkv_video['width'], mkv_video['height'], int(mkv_video['nb_read_packets'])) == (960, 540, 4)
+        assert mkv_video['avg_frame_rate'] == '24/1'
+        assert sum(s['codec_type'] == 'audio' for s in mkv_info['streams']) == 1
+        subprocess.run([runtime['ffmpeg'], '-v', 'error', '-xerror', '-i', str(mkv_output),
+                        '-f', 'null', '-'], check=True, capture_output=True, timeout=30)
+        assert hashlib.sha256(source.read_bytes()).hexdigest() == source_hash
+        report['mkv_output'] = True
+        atomic_json(work / 'report.json', report)
+        print('Installed second queued job -> MKV and full decode passed.', flush=True)
     finally:
         service.shutdown()
 
