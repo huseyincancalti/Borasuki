@@ -52,18 +52,26 @@ class SegmentEncodingTests(unittest.TestCase):
 
     def test_final_mp4_mux_omits_only_confirmed_unsupported_tracks(self):
         args = mux_args(self.runtime, Path('segments.ffconcat'), Path('source.mkv'),
-                        Path('output.partial.mp4'), 'a' * 32, True)
+                        Path('output.partial.mp4'), 'a' * 32, True, Fraction(24000, 1001))
         self.assertIn(('-map', '1:a?'), list(zip(args, args[1:])))
         self.assertNotIn('1:s?', args)
         self.assertNotIn('1:t?', args)
         self.assertIn(('-c', 'copy'), list(zip(args, args[1:])))
         self.assertIn(('-f', 'mp4'), list(zip(args, args[1:])))
         self.assertIn(('-movflags', '+faststart+use_metadata_tags'), list(zip(args, args[1:])))
+        self.assertIn(('-video_track_timescale', '24000'), list(zip(args, args[1:])))
+        self.assertIn('setts=prescale=1:time_base=1001/24000:pts=PTS:dts=DTS:duration=1', args)
         self.assertEqual(args[-1], 'output.partial.mp4')
         mkv = mux_args(self.runtime, Path('segments.ffconcat'), Path('source.mkv'),
                        Path('output.partial.mkv'), 'a' * 32, False)
         self.assertIn('1:s?', mkv)
         self.assertIn('1:t?', mkv)
+        self.assertNotIn('-bsf:v', mkv)
+
+    def test_mp4_mux_requires_verified_fps(self):
+        with self.assertRaisesRegex(ValueError, 'verified frame rate'):
+            mux_args(self.runtime, Path('segments.ffconcat'), Path('source.mkv'),
+                     Path('output.mp4'), 'a' * 32, True)
 
     def test_invalid_hardware_profile_is_not_silently_changed_or_fallback(self):
         bad = [{'codec': 'unknown'}, {'preset': 'slow'}, {'cq': True}, {'cq': 0},

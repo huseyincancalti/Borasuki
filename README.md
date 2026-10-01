@@ -7,7 +7,7 @@
 <p align="center"><code>Windows 10/11</code> · <code>NVIDIA GPU</code> · <code>TensorRT</code> · <code>Public beta</code></p>
 
 <p align="center">
-  <a href="https://github.com/huseyincancalti/Borasuki/releases/download/v1.0.0-beta.1/Borasuki-Setup-1.0.0-beta.1-win64.exe"><strong>Download for Windows</strong></a>
+  <a href="https://github.com/huseyincancalti/Borasuki/releases/download/v1.0.0-beta.2/Borasuki-Setup-1.0.0-beta.2-win64.exe"><strong>Download for Windows</strong></a>
   · <a href="#system-requirements">Check requirements</a>
   · <a href="#quick-start">Get started</a>
 </p>
@@ -23,11 +23,13 @@ Borasuki is for people processing anime or other animated footage who want to cr
 
 ## Download
 
-**Latest public beta:** [Borasuki 1.0.0 beta 1](https://github.com/huseyincancalti/Borasuki/releases/tag/v1.0.0-beta.1) · [Windows installer](https://github.com/huseyincancalti/Borasuki/releases/download/v1.0.0-beta.1/Borasuki-Setup-1.0.0-beta.1-win64.exe)
+**Latest public beta:** [Borasuki 1.0.0 beta 2](https://github.com/huseyincancalti/Borasuki/releases/tag/v1.0.0-beta.2) · [Windows installer](https://github.com/huseyincancalti/Borasuki/releases/download/v1.0.0-beta.2/Borasuki-Setup-1.0.0-beta.2-win64.exe)
+
+Beta 2 fixes a beta 1 packaging defect that prevented analysis and rendering in the installed app. Existing users should install beta 2 over beta 1; local settings and history are preserved.
 
 The installer is about 30 MB. First-time in-app setup downloads approximately 3 GB of processing components directly from their publishers and checks pinned SHA-256 hashes. Interrupted downloads can resume. This is a **pre-release for testing**, not a stable 1.0 release.
 
-The installer is not code-signed, so Windows may show a reputation warning. Its SHA-256 is listed on the [release page](https://github.com/huseyincancalti/Borasuki/releases/tag/v1.0.0-beta.1).
+The installer is not code-signed, so Windows may show a reputation warning. Its SHA-256 is listed on the [release page](https://github.com/huseyincancalti/Borasuki/releases/tag/v1.0.0-beta.2).
 
 ## System requirements
 
@@ -42,7 +44,7 @@ This beta was tested on Windows 11 with an RTX 3050 Laptop GPU (4 GB VRAM). That
 
 ## Quick start
 
-1. Download and run the [installer](https://github.com/huseyincancalti/Borasuki/releases/download/v1.0.0-beta.1/Borasuki-Setup-1.0.0-beta.1-win64.exe).
+1. Download and run the [installer](https://github.com/huseyincancalti/Borasuki/releases/download/v1.0.0-beta.2/Borasuki-Setup-1.0.0-beta.2-win64.exe).
 2. Open Borasuki and complete the in-app processing setup.
 3. Add a video, choose denoise and color settings, an output folder, and MP4 or MKV.
 4. Let the selected TensorRT engine prepare, then preview a short section or add the job to the queue. A new video/GPU/settings combination may take several minutes to prepare.
@@ -63,6 +65,7 @@ Source videos stay where you put them; outputs go to your chosen folder. History
 - Visual gains depend on the source; upscaling and denoise can also soften fine detail. Check a preview before a long job.
 - Adaptive color is video-wide, not scene-aware. First-time engine preparation can be slow.
 - Clean-install behavior and GPU compatibility have been tested on a limited set of systems.
+- Explorer context-menu launching is not working in this packaged beta; use the app's video picker or drag/drop instead.
 
 ## Run from source
 

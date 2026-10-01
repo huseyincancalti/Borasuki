@@ -35,10 +35,12 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'PyInstaller failed.' }
     $appFolder = Join-Path $buildRoot 'dist\Borasuki'
     if (-not (Test-Path -LiteralPath (Join-Path $appFolder 'Borasuki.exe'))) { throw 'Frozen app is missing.' }
+    & py -3.13 -I 'installer\check_bundle.py' $appFolder
+    if ($LASTEXITCODE -ne 0) { throw 'External renderer imports failed; installer will not be built.' }
     & $iscc '/Qp' "/DBuildRoot=$appFolder" "/DWebView2Bootstrapper=$webview" `
         "/O$(Join-Path $buildRoot 'installer')" 'installer\Borasuki.iss'
     if ($LASTEXITCODE -ne 0) { throw 'Inno Setup compile failed.' }
-    Get-FileHash -Algorithm SHA256 (Join-Path $buildRoot 'installer\Borasuki-Setup-1.0.0-beta.1-win64.exe')
+    Get-FileHash -Algorithm SHA256 (Join-Path $buildRoot 'installer\Borasuki-Setup-1.0.0-beta.2-win64.exe')
 }
 finally {
     Pop-Location

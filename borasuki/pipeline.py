@@ -239,14 +239,18 @@ def validate_checkpoint_range(info: dict, work: Path) -> None:
         raise ValueError('error.render_format_changed')
 
 
-def mux_args(runtime, listing, source, publish, identifier, mp4):
+def mux_args(runtime, listing, source, publish, identifier, mp4, fps=None):
     args = [runtime['ffmpeg'], '-v', 'error', '-nostdin', '-n', '-f', 'concat', '-safe', '1', '-i', str(listing),
             '-i', str(source), '-map', '0:v:0', '-map', '1:a?']
     if not mp4:
         args += ['-map', '1:s?', '-map', '1:t?']
     args += ['-map_metadata', '1', '-map_chapters', '1', '-metadata', f'borasuki_job={identifier}', '-c', 'copy']
     if mp4:
-        args += ['-tag:v', 'hvc1', '-movflags', '+faststart+use_metadata_tags', '-f', 'mp4']
+        if fps is None or fps <= 0:
+            raise ValueError('MP4 mux requires the verified frame rate.')
+        timing = f'setts=prescale=1:time_base={fps.denominator}/{fps.numerator}:pts=PTS:dts=DTS:duration=1'
+        args += ['-bsf:v', timing, '-video_track_timescale', str(fps.numerator),
+                 '-tag:v', 'hvc1', '-movflags', '+faststart+use_metadata_tags', '-f', 'mp4']
     return [*args, str(publish)]
 
 
@@ -355,14 +359,20 @@ def execute(job: dict, stop: threading.Event, update, segment_frames=240) -> Non
     if stop.is_set():
         raise Interrupted()
     update(stage="muxing", speed=None, eta=None)
+    mp4 = output.suffix.lower() == '.mp4'
     listing = work / "segments.ffconcat"
     # filenames are generated, never derived from user text
-    listing.write_text("ffconcat version 1.0\n" + "".join(f"file '{p.name}'\n" for p in segments), encoding="ascii")
+    lines = ['ffconcat version 1.0']
+    for index, path in enumerate(segments):
+        lines.append(f"file '{path.name}'")
+        if mp4:
+            count = min(segment_frames, total - index * segment_frames)
+            lines.append(f'duration {float(count / fps):.12f}')
+    listing.write_text('\n'.join(lines) + '\n', encoding='ascii')
     output.parent.mkdir(parents=True, exist_ok=True)
     publish = output.parent / f".borasuki-{job['id']}.partial{output.suffix.lower()}"
     publish.unlink(missing_ok=True)
-    mp4 = output.suffix.lower() == '.mp4'
-    args = mux_args(runtime, listing, source, publish, job['id'], mp4)
+    args = mux_args(runtime, listing, source, publish, job['id'], mp4, fps)
     with ProcessGroup(stop) as group:
         group.capture(args, timeout=1800)
     update(stage="verifying")

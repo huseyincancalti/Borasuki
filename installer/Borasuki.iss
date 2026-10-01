@@ -1,4 +1,4 @@
-#define AppVersion "1.0.0-beta.1"
+#define AppVersion "1.0.0-beta.2"
 #ifndef BuildRoot
   #error BuildRoot must point to the verified PyInstaller Borasuki folder.
 #endif

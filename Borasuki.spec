@@ -4,14 +4,15 @@ from pathlib import Path
 
 
 project = Path.cwd()
+renderer_files = [(str(path), 'borasuki') for pattern in ('*.py', '*.vpy', '*.ps1')
+                  for path in sorted((project / 'borasuki').glob(pattern))]
 a = Analysis(
     ['main.py'],
     pathex=[str(project)],
     binaries=[],
     datas=[('frontend', 'frontend'),
            ('borasuki/locales', 'borasuki/locales'),
-           ('borasuki/render.vpy', 'borasuki'),
-           ('borasuki/runtime_check.vpy', 'borasuki')],
+           *renderer_files],
     hiddenimports=['webview.platforms.edgechromium', 'webview.platforms.winforms'],
     hookspath=[],
     hooksconfig={},
